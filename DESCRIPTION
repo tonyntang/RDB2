@@ -1,0 +1,30 @@
+Package: RDB2
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0.9000
+Author: Ning Tang
+Maintainer: Ning Tang <tangning@gmail.com>
+Description: This package provides tools for accessing IBM DB2 databases.
+Depends:
+    R (>= 3.2.0)
+License: MIT + file LICENSE
+LazyData: TRUE
+Imports:
+    methods,
+    DBI,
+    RODBC,
+    tcltk2,
+    dplyr
+Suggests:
+    DBItest,
+    testthat
+Collate:
+    'driver.R'
+    'login.R'
+    'connection.R'
+    'quote.R'
+    'result.R'
+    'schema.R'
+    'tables.R'
+    'utils.R'
+RoxygenNote: 5.0.1
