@@ -56,6 +56,7 @@ setMethod("trimws",
                                           simplify = FALSE),
                                    stringsAsFactors = TRUE)
             }
+            ans
           })
 
 #' @export
