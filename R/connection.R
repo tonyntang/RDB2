@@ -115,9 +115,13 @@ setMethod("show",
           "DB2Connection",
           function(object)
           {
-            info <- dbGetInfo(object)
-            cat("<Database>= ", info$dbname, "\n",
-                "<DB2Connection> ", object@dbname, "@", object@host, ":", object@port, "\n", sep = "")
+            if (!dbIsValid(object)) cat("<Database connection invalid>")
+            else
+            {
+              info <- dbGetInfo(object)
+              cat("<Database>= ", info$dbname, "\n",
+                  "<DB2Connection> ", object@dbname, "@", object@host, ":", object@port, "\n", sep = "")
+            }
           })
 
 #' @export
