@@ -17,7 +17,8 @@
 
 \S4method{dbExistsTable}{DB2Connection,character}(conn, name, schema = NULL)
 
-\S4method{dbFindTables}{DB2Connection,character}(conn, name, schema = NULL)
+\S4method{dbFindTables}{DB2Connection,character}(conn, name, schema = NULL,
+  sys.include = FALSE)
 
 \S4method{dbListFields}{DB2Connection,character}(conn, name,
   schema = "syscat")

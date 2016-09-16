@@ -91,7 +91,7 @@ setGeneric("dbFindTables",
 #' @rdname DB2-tables
 setMethod("dbFindTables",
           c("DB2Connection", "character"),
-          function(conn, name, schema = NULL, , sys.include = FALSE)
+          function(conn, name, schema = NULL, sys.include = FALSE)
           {
             if(is.null(schema)) schema <- dbListSchemas(conn = conn, sys.include = sys.include)
             name <- toupper(name[1])
