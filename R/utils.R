@@ -1,13 +1,3 @@
-#' @title C-style (x > b) ? a : b statement
-#' @examples (4 > 3) %?% ..("Nice", "Dang")
-#' @name utils
-#' @export
-`%?%` <- function(x, y, env = parent.frame())
-{
-  if(x) eval(y[[1]], envir = env)
-  else eval(y[[2]], envir = env)
-}
-
 #' @param ... any objects
 #' @rdname utils
 #' @export
