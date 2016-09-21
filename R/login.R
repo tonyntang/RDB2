@@ -5,8 +5,8 @@ getLoginDetails <- function(user, passwd)
   tt <- tktoplevel()
   tkwm.title(tt, "Login Credentials")
 
-  Name <- is.null(user) %?% ..(tclVar("Login ID"), tclVar(user))
-  Password <- is.null(passwd) %?% ..(tclVar("Password"), tclVar(passwd))
+  Name <- if(is.null(user)) tclVar("Login ID") else tclVar(user)
+  Password <- if(is.null(passwd)) tclVar("Password") else tclVar(passwd)
   Success <- tclVar(0)
 
   entry.Name <- tkentry(tt, width = "20", textvariable = Name)
