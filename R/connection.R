@@ -34,8 +34,26 @@ NULL
 #' }
 setMethod("dbConnect",
           "DB2Driver",
-          function(drv, dbname = NULL, host = NULL, port = 50000, user = NULL, password = NULL, ...)
+          function(drv, dbname = NULL, host = NULL, port = 50000, user = NULL, password = NULL, update = FALSE, ...)
           {
+            # if username not provided, try to retrieve from envrionment
+            # if provided, see if to be updated
+            if(is.null(user)) user <- Sys.getenv("DB2_USER") %?% NULL
+            else
+            {
+              if(update) {
+                Sys.setenv(DB2_USER = user)
+              }
+            }
+
+            if(is.null(password)) password <- Sys.getenv("DB2_PASS") %?% NULL
+            else
+            {
+              if(update) {
+                Sys.setenv(DB2_PASS = password)
+              }
+            }
+                   
             # Check if DB2 connection credential provided
             if(is.null(user) | is.null(password))
             {
@@ -43,7 +61,11 @@ setMethod("dbConnect",
               # return(credential)
 
               if(credential$success == -1) stop("You pressed Cancel")
-
+              
+              # save to envrionment
+              if(credential$save_user) Sys.setenv(DB2_USER = credential$loginID)
+              if(credential$save_user) Sys.setenv(DB2_PASS = credential$password)
+              
               user <- credential$loginID
               password <- credential$password
             }
