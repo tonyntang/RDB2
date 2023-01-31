@@ -1,46 +1,50 @@
-# compute aggregations based on from/to pairs ----------------------------------
-agg_graph <- function(x) {
-  agg_edge <- x %>% 
-    activate(edges) %>% 
-    as_tibble %>% 
-    group_by(from, to) %>% 
-    summarize(
-      total_amt_usd = sum(dia_trans_amt_usd),
-      trans_count = n(),
-      pairs = first(pairs),
-      .groups = 'drop'
-    )
-  
-  tbl_graph(
-    nodes = x %>% activate(nodes) %>% as_tibble,
-    edges = agg_edge,
-    node_key = 'id'
-  ) %>% 
-    mutate(
-      # create centrality statistics ---------------------------------------------
-      centrality = centrality_hub(),
-      community = group_components(type = 'strong'),
-      
-      # create other variables for visualization ---------------------------------
-      # on nodes -----------------------------------------------------------------
-      title = bus_name,
-      label = bus_name,
-      group = case_when(
-        is_SOI == 'Y' & is_Shell == 'Y' ~ 'SOI_Shell',
-        is_SOI == 'Y' & is_Shell == 'N' ~ 'SOI_non_Shell',
-        is_SOI == 'N' & is_Shell == 'Y' ~ 'non_SOI_Shell',
-        is_SOI == 'N' & is_Shell == 'N' ~ 'non_SOI_non_Shell'
-      ),
-      size = centrality * 10 + 5
-    ) %>%
-    # on edges -------------------------------------------------------------------
-  activate(edges) %>% 
-    mutate(
-      label = glue('{dollar(total_amt_usd / 1000, accuracy = 1)}K ({number(trans_count, accuracy = 1)})')
-    )
-}
+node_fn <- file.path(data_folder, 'node_v2.csv')
+edge_fn <- file.path(data_folder, 'edge_v2.csv')
 
+
+# dx_node <- read_excel(node_fn, col_types = 'text') %>% 
+#   mutate(`Clean Name` = replace_na(`Clean Name`, ''))
 # 
-clear_contents <- function(x) {
-  
-}
+# dx_edge <-  read_excel(edge_fn, col_types = 'text') %>% 
+#   rename(
+#     to = to_id,
+#     from = from_id
+#   )
+
+dx_node <- read_csv(node_fn)
+
+dx_edge <- read_csv(
+  edge_fn, 
+  col_types = list(.default = col_character())
+  ) %>% 
+  mutate(
+    across(contains(c('_amount', '_amt')), ~ as.numeric(.x)),
+    across(contains(c('_date', '_dt')), ~ as_date(.x))
+  ) %>% 
+  # when in/out bound directions both exist, make sure edges are separated
+  # otherwise, make it as straight by default
+  rowwise() %>% 
+  mutate(
+    pairs = c(from, to) %>% sort %>% str_c(collapse = '') 
+  ) %>%
+  ungroup
+
+
+# global variables =============================================================
+# Network analysis processing --------------------------------------------------
+dg_txn_raw <- tbl_graph(
+  nodes = dx_node,
+  edges = dx_edge,
+  node_key = 'id'
+)
+
+glb_min_dt <- dg_txn_raw %>% activate(edges) %>% pull(transaction_date_time) %>% min
+glb_max_dt <- dg_txn_raw %>% activate(edges) %>% pull(transaction_date_time) %>% max
+
+# dg %>% 
+#   filter(is_SOI == 'Y') %>% 
+#   ggraph(layout = 'kk') +
+#   geom_edge_link() +
+#   geom_node_point(size = 8, color = 'steelblue') +
+#   geom_node_text(aes(label = bus_name), color = 'white', vjust = .4)
+
