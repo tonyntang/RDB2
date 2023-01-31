@@ -1,70 +1,46 @@
-tab_overall_display <- tabItem(
-  tabName = 'overall_display',
-  fluidRow(
-    # box to show tweak options ------------------------------------------
-    box(
-      title = 'Options',
-      status = 'primary',
-      width = 12,
-      height = 600,
-      closable = FALSE,
-      solidHeader = TRUE,
-      collapsible = TRUE,
-      
-      # gadgets put here -------------------------------------------------
-      column(
-        6,
-        dateRangeInput(
-          'shy_dt_range', 
-          label = h3('Date Range'), 
-          start = glb_min_dt,
-          end = glb_max_dt,
-          min = glb_min_dt,
-          max = glb_max_dt
-        )
-      )
-    ),
-    
-    # box to show Major Visualization ------------------------------------
-    box(
-      title = 'Network for SOIs only',
-      status = 'success',
-      width = 6,
-      height = 600,
-      closable = FALSE,
-      solidHeader = FALSE,
-      collapsible = FALSE,
-      
-      visNetworkOutput('shy_visnet_main') %>% 
-        withSpinner()
-    ),
-    
-    # box to show detailed Visualization ---------------------------------
-    box(
-      title = 'Network for selected SOI ',
-      status = 'success',
-      width = 6,
-      height = 600,
-      closable = FALSE,
-      solidHeader = FALSE,
-      collapsible = FALSE,
-      
-      visNetworkOutput('shy_visnet_side') %>% 
-        withSpinner()
-    ),
-    
-    # box to show data ---------------------------------------------------
-    box(
-      title = 'Data',
-      status = 'orange',
-      width = 12,
-      height = 600,
-      closable = FALSE,
-      solidHeader = FALSE,
-      collapsible = TRUE,
-      
-      # show data
-      column(12, DT::DTOutput('shy_tbl_overall_selected'))
+# compute aggregations based on from/to pairs ----------------------------------
+agg_graph <- function(x) {
+  agg_edge <- x %>% 
+    activate(edges) %>% 
+    as_tibble %>% 
+    group_by(from, to) %>% 
+    summarize(
+      total_amt_usd = sum(dia_trans_amt_usd),
+      trans_count = n(),
+      pairs = first(pairs),
+      .groups = 'drop'
     )
-  )
-)
+  
+  tbl_graph(
+    nodes = x %>% activate(nodes) %>% as_tibble,
+    edges = agg_edge,
+    node_key = 'id'
+  ) %>% 
+    mutate(
+      # create centrality statistics ---------------------------------------------
+      centrality = centrality_hub(),
+      community = group_components(type = 'strong'),
+      
+      # create other variables for visualization ---------------------------------
+      # on nodes -----------------------------------------------------------------
+      title = bus_name,
+      label = bus_name,
+      group = case_when(
+        is_SOI == 'Y' & is_Shell == 'Y' ~ 'SOI_Shell',
+        is_SOI == 'Y' & is_Shell == 'N' ~ 'SOI_non_Shell',
+        is_SOI == 'N' & is_Shell == 'Y' ~ 'non_SOI_Shell',
+        is_SOI == 'N' & is_Shell == 'N' ~ 'non_SOI_non_Shell'
+      ),
+      size = centrality * 10 + 5
+    ) %>%
+    # on edges -------------------------------------------------------------------
+  activate(edges) %>% 
+    mutate(
+      label = glue('{dollar(total_amt_usd / 1000, accuracy = 1)}K ({number(trans_count, accuracy = 1)})')
+    )
+}
+
+# 
+clear_contents <- function(x) {
+  
+}
