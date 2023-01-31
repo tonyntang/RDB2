@@ -1,5 +1,5 @@
-tab_target_display <- tabItem(
-  tabName = 'target_display',
+tab_overall_display <- tabItem(
+  tabName = 'overall_display',
   fluidRow(
     # box to show tweak options ------------------------------------------
     box(
@@ -12,42 +12,22 @@ tab_target_display <- tabItem(
       collapsible = TRUE,
       
       # gadgets put here -------------------------------------------------
-      fluidRow(
-        column(
-          width = 6,
-          pickerInput(
-            inputId = 'shy_target_select',
-            label = 'Select target(s)',
-            choices = dg_txn_raw %>% activate(nodes) %>% pull(bus_name) %>% sort,
-            multiple = TRUE,
-            options = pickerOptions(
-              liveSearch = TRUE,
-              actionsBox = TRUE,
-              size = 10,
-              title = 'Choose maximum two from the list...',
-              selectedTextFormat = 'count > 5',
-              selectOnTab = TRUE,
-              maxOptions = 2
-            )
-          )
-        )
-      ),
-      
       column(
-        width = 2,
-        actionBttn(
-          inputId = "shy_target_update_btn",
-          label = "Update", 
-          style = "gradient",
-          color = "danger",
-          icon = icon("thumbs-up")
+        6,
+        dateRangeInput(
+          'shy_dt_range', 
+          label = h3('Date Range'), 
+          start = glb_min_dt,
+          end = glb_max_dt,
+          min = glb_min_dt,
+          max = glb_max_dt
         )
       )
     ),
     
     # box to show Major Visualization ------------------------------------
     box(
-      title = 'Network for Selected Target(s)',
+      title = 'Network for SOIs only',
       status = 'success',
       width = 6,
       height = 600,
@@ -55,50 +35,22 @@ tab_target_display <- tabItem(
       solidHeader = FALSE,
       collapsible = FALSE,
       
-      visNetworkOutput('shy_visnet_target') %>% 
-      withSpinner()
+      visNetworkOutput('shy_visnet_main') %>% 
+        withSpinner()
     ),
     
     # box to show detailed Visualization ---------------------------------
-    tabBox(
-      title = 'Statistics',
-      id = 'shy_na_detail_stat',
+    box(
+      title = 'Network for selected SOI ',
+      status = 'success',
       width = 6,
       height = 600,
+      closable = FALSE,
+      solidHeader = FALSE,
+      collapsible = FALSE,
       
-      tabPanel(
-        'Summary', 
-        icon = fa_i('desktop'),
-        fluidRow(
-          infoBox_ui('shy_detail_summary_amt_stat'),
-          infoBox_ui('shy_detail_summary_cnt_stat'),
-          infoBox_ui('shy_detail_summary_date_stat')
-        ),
-        trans_plot_ui('shy_detail_summary_plot')
-      ),
-      
-      tabPanel(
-        'Originator', 
-        icon = fa_i('arrow-circle-left'),
-        fluidRow(
-          infoBox_ui('shy_detail_orig_amt_stat'),
-          infoBox_ui('shy_detail_orig_cnt_stat'),
-          infoBox_ui('shy_detail_orig_date_stat')
-        ),
-        trans_plot_ui('shy_detail_orig_plot')
-      ),
-      
-      tabPanel(
-        'Beneficiary', 
-        icon = fa_i('arrow-circle-right'),
-        fluidRow(
-          infoBox_ui('shy_detail_bene_amt_stat'),
-          infoBox_ui('shy_detail_bene_cnt_stat'),
-          infoBox_ui('shy_detail_bene_date_stat')
-        ),
-        trans_plot_ui('shy_detail_bene_plot')
-      )
-      
+      visNetworkOutput('shy_visnet_side') %>% 
+        withSpinner()
     ),
     
     # box to show data ---------------------------------------------------
@@ -110,8 +62,9 @@ tab_target_display <- tabItem(
       closable = FALSE,
       solidHeader = FALSE,
       collapsible = TRUE,
+      
       # show data
-      column(12, DT::DTOutput('shy_tbl_detail_selected'))
+      column(12, DT::DTOutput('shy_tbl_overall_selected'))
     )
   )
 )
